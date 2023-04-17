@@ -18,7 +18,6 @@ public class medicalModel extends Model {
 
     // Constructor
     public medicalModel(Model owner, String name, boolean showInReport, boolean showInTrace) {
-
         super(owner, name, showInReport, showInTrace);
     }
 

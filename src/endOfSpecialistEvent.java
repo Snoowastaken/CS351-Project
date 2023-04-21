@@ -12,5 +12,7 @@ public class endOfSpecialistEvent extends Event<Patient> {
         double responseTime = currentTime - patient.arrivalTime;
         //send trace note about patient leaving
         model.sendTraceNote(patient + " is leaving");
+        model.patientsTreated.update();
+        model.responseTimeFullyTreated.update(responseTime);
     }
 }

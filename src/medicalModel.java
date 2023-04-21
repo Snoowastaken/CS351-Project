@@ -7,6 +7,8 @@ public class medicalModel extends Model {
     /* State Variables */
     protected boolean nurseIsBusy;
     protected boolean specialistIsBusy;
+    protected int examRooms;
+
 
 
 
@@ -59,6 +61,8 @@ public class medicalModel extends Model {
         // Initialize state variables
         nurseIsBusy = false;
         specialistIsBusy = false;
+        examRooms = 4;
+
 
         // Initialize structures
         waitingRoom = new Queue<Patient>(this, "Waiting Room", true, true);

@@ -29,7 +29,7 @@ public class endOfNurseEvent extends Event<Patient> {
             if(specialistQueueSize == 4){
                 //specialist queue is full
                 //send trace note saying patient is being diverted
-                model.sendTraceNote("Patient is being diverted");
+                model.sendTraceNote("Patient is being diverted due to full specialist queue");
                 model.patientsDiverted.update();
                 model.dailyOperatingCost.update(500);
             } else {
@@ -43,6 +43,7 @@ public class endOfNurseEvent extends Event<Patient> {
                     model.specialistIsBusy = true;
                     //remove patient from specialist queue
                     model.specialistQueue.remove(patient);
+                    model.sendTraceNote(patient + " has been removed from the specialist queue");
                     //get current time
                     double currentTime = model.presentTime().getTimeAsDouble();
                     double responseTime = currentTime - patient.arrivalTime;
@@ -56,6 +57,7 @@ public class endOfNurseEvent extends Event<Patient> {
                         //schedule end of specialist event
                         endOfSpecialistEvent endOfSpecialist = new endOfSpecialistEvent(model, "End of Specialist Event", true);
                         endOfSpecialist.schedule(patient, new TimeSpan(specialistTreatmentTime, TimeUnit.MINUTES));
+                        model.specialistIsBusy = false;
                     }
                 } else {
                     model.sendTraceNote("Specialist is busy");

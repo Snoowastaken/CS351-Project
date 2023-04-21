@@ -2,7 +2,8 @@ import desmoj.core.simulator.*;
 public class Patient extends Entity{
     //Entity attributes
     protected boolean referred;
-    //this is a test
+    protected double arrivalTime;
+
 
 
     public Patient(Model owner, String name, boolean showInTrace) {

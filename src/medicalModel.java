@@ -24,6 +24,7 @@ public class medicalModel extends Model {
     protected ContDistExponential specialistTreatmentTime;
 
 
+
     /* Statistics */
     protected Count patientsArrived;
     protected Count patientsBalk;
@@ -62,12 +63,12 @@ public class medicalModel extends Model {
         specialistQueue = new Queue<Patient>(this, "Specialist Queue", true, true);
 
         // Initialize distributions
-        morningInterArrivalTime = new ContDistExponential(this, "Morning Inter-Arrival Time", 5.0, true, true);
-        afternoonInterArrivalTime = new ContDistExponential(this, "Afternoon Inter-Arrival Time", 10.0, true, true);
-        eveningInterArrivalTime = new ContDistExponential(this, "Evening Inter-Arrival Time", 15.0, true, true);
-        treatmentTime = new ContDistExponential(this, "Treatment Time", 10.0, true, true);
-        referralRate = new BoolDistBernoulli(this, "Referral Rate", 0.2, true, true);
-        specialistTreatmentTime = new ContDistExponential(this, "Specialist Treatment Time", 20.0, true, true);
+        morningInterArrivalTime = new ContDistExponential(this, "Morning Inter-Arrival Time", 15.0, true, true);
+        afternoonInterArrivalTime = new ContDistExponential(this, "Afternoon Inter-Arrival Time", 6.0, true, true);
+        eveningInterArrivalTime = new ContDistExponential(this, "Evening Inter-Arrival Time", 9.0, true, true);
+        treatmentTime = new ContDistExponential(this, "Treatment Time", 8.0, true, true);
+        referralRate = new BoolDistBernoulli(this, "Referral Rate", 0.4, true, true);
+        specialistTreatmentTime = new ContDistExponential(this, "Specialist Treatment Time", 25.0, true, true);
 
         // Initialize statistics
         patientsArrived = new Count(this, "Patients Arrived", true, true);
@@ -83,10 +84,19 @@ public class medicalModel extends Model {
 
     //runs the model
     public static void main(String[] args){
-
-
-
-
+        Experiment.setReferenceUnit(TimeUnit.MINUTES);
+        medicalModel model = new medicalModel(null, "Medical Model", true, true);
+        Experiment exp = new Experiment("Medical Model Experiment");
+        model.connectToExperiment(exp);
+        exp.setShowProgressBar(false);
+        exp.stop(new TimeInstant(24, TimeUnit.HOURS));
+        exp.tracePeriod(new TimeInstant(0, TimeUnit.MINUTES),
+                new TimeInstant(1600, TimeUnit.MINUTES));
+        exp.debugPeriod(new TimeInstant(0, TimeUnit.MINUTES),
+                new TimeInstant(1600, TimeUnit.MINUTES));
+        exp.start();
+        exp.report();
+        exp.finish();
     }
 
 

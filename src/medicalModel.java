@@ -50,6 +50,8 @@ public class medicalModel extends Model {
 
     //Creates initial processes
     public void doInitialSchedules() {
+        Generator generator = new Generator(this, "Generator", true);
+        generator.schedule(new TimeSpan(0.0, TimeUnit.MINUTES));
     }
 
     //Initializes the model
@@ -91,9 +93,9 @@ public class medicalModel extends Model {
         exp.setShowProgressBar(false);
         exp.stop(new TimeInstant(24, TimeUnit.HOURS));
         exp.tracePeriod(new TimeInstant(0, TimeUnit.MINUTES),
-                new TimeInstant(1600, TimeUnit.MINUTES));
+                new TimeInstant(1440, TimeUnit.MINUTES));
         exp.debugPeriod(new TimeInstant(0, TimeUnit.MINUTES),
-                new TimeInstant(1600, TimeUnit.MINUTES));
+                new TimeInstant(1440, TimeUnit.MINUTES));
         exp.start();
         exp.report();
         exp.finish();

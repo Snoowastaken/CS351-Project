@@ -26,7 +26,7 @@ public class endOfNurseEvent extends Event<Patient> {
             model.sendTraceNote("Patient is being referred");
             //get specialist queue size
             int specialistQueueSize = model.specialistQueue.size();
-            if(specialistQueueSize == 4){
+            if(specialistQueueSize == model.examRooms){
                 //specialist queue is full
                 //send trace note saying patient is being diverted
                 model.sendTraceNote("Patient is being diverted due to full specialist queue");
@@ -41,6 +41,7 @@ public class endOfNurseEvent extends Event<Patient> {
                     //specialist is not busy
                     //set specialist to busy
                     model.specialistIsBusy = true;
+                    model.specialistUtilization.update(100);
                     //remove patient from specialist queue
                     model.specialistQueue.remove(patient);
                     model.sendTraceNote(patient + " has been removed from the specialist queue");
@@ -49,6 +50,7 @@ public class endOfNurseEvent extends Event<Patient> {
                     double responseTime = currentTime - patient.arrivalTime;
                     if(responseTime > 30){
                         model.specialistIsBusy = false;
+                        model.specialistUtilization.update(0);
                         model.patientsDiverted.update();
                         model.dailyOperatingCost.update(500);
                     } else {
@@ -57,7 +59,10 @@ public class endOfNurseEvent extends Event<Patient> {
                         //schedule end of specialist event
                         endOfSpecialistEvent endOfSpecialist = new endOfSpecialistEvent(model, "End of Specialist Event", true);
                         endOfSpecialist.schedule(patient, new TimeSpan(specialistTreatmentTime, TimeUnit.MINUTES));
+                        //add to daily operating cost
+                        model.dailyOperatingCost.update(200);
                         model.specialistIsBusy = false;
+                        model.specialistUtilization.update(0);
                     }
                 } else {
                     model.sendTraceNote("Specialist is busy");

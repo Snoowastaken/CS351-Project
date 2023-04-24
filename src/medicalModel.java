@@ -8,13 +8,16 @@ public class medicalModel extends Model {
     protected boolean nurseIsBusy;
     protected boolean specialistIsBusy;
     protected int examRooms;
+    protected int numNurses;
+    protected int numSpecialists;
+
 
 
 
 
     /* Structures */
-    protected Queue<Patient> waitingRoom;
-    protected Queue<Patient> specialistQueue;
+    protected ProcessQueue<Patient> waitingRoom;
+    protected ProcessQueue<Patient> specialistQueue;
 
 
     /* Distribution Variables */
@@ -52,8 +55,7 @@ public class medicalModel extends Model {
 
     //Creates initial processes
     public void doInitialSchedules() {
-        Generator generator = new Generator(this, "Generator", true);
-        generator.schedule();
+
     }
 
     //Initializes the model
@@ -62,11 +64,12 @@ public class medicalModel extends Model {
         nurseIsBusy = false;
         specialistIsBusy = false;
         examRooms = 4;
-
+        numNurses = 1;
+        numSpecialists = 1;
 
         // Initialize structures
-        waitingRoom = new Queue<Patient>(this, "Waiting Room", true, true);
-        specialistQueue = new Queue<Patient>(this, "Specialist Queue", true, true);
+        waitingRoom = new ProcessQueue<>(this, "Waiting Room", true, true);
+        specialistQueue = new ProcessQueue<>(this, "Specialist Queue", true, true);
 
         // Initialize distributions
         morningInterArrivalTime = new ContDistExponential(this, "Morning Inter-Arrival Time", 15.0, true, true);

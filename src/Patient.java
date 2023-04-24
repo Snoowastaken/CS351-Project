@@ -27,47 +27,39 @@ public class Patient extends SimProcess{
             //enter waiting room
             model.waitingRoom.insert(this);
             model.sendTraceNote(this.getName() + " has entered the waiting room");
-            if(model.nurseIsBusy){
+            if (model.nurseIsBusy) {
                 passivate();
             } else {
-                model.nurseIsBusy = true;
-                model.waitingRoom.removeFirst();
-                double treatmentTime = model.treatmentTime.sample();
-                hold(new TimeSpan(treatmentTime, TimeUnit.MINUTES));
-                model.nurseIsBusy = false;
-                //check if patient gets referred to specialist
-                boolean referral = model.referralRate.sample();
-                if(!referral){
-                    //patient is fully treated
-                    model.sendTraceNote(this.getName() + " has been treated");
-                    model.patientsTreated.update();
-                    model.responseTimeFullyTreated.update(model.presentTime().getTimeAsDouble(TimeUnit.MINUTES) - startTime);
+                //get current time
+                double currentTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES);
+                //check how long patient has been waiting
+                double waitingTime = currentTime - startTime;
+                if (waitingTime > 30) {
+                    //patient leaves
+                    model.sendTraceNote(this.getName() + " has been sent to the ER");
                 } else {
-                    //patient is referred to specialist
-                    model.sendTraceNote(this.getName() + " has been referred to a specialist");
-                    model.specialistQueue.insert(this);
-                    if(model.specialistIsBusy){
-                        passivate();
-                    } else {
-                        model.specialistIsBusy = true;
-                        model.specialistQueue.removeFirst();
-                        double specialistTreatmentTime = model.specialistTreatmentTime.sample();
-                        hold(new TimeSpan(specialistTreatmentTime, TimeUnit.MINUTES));
-                        model.specialistIsBusy = false;
+                    model.nurseIsBusy = true;
+                    model.waitingRoom.removeFirst();
+                    double treatmentTime = model.treatmentTime.sample();
+                    hold(new TimeSpan(treatmentTime, TimeUnit.MINUTES));
+                    model.nurseIsBusy = false;
+                    //check if patient gets referred to specialist
+                    boolean referral = model.referralRate.sample();
+                    if (!referral) {
+                        //patient is fully treated
                         model.sendTraceNote(this.getName() + " has been treated");
                         model.patientsTreated.update();
                         model.responseTimeFullyTreated.update(model.presentTime().getTimeAsDouble(TimeUnit.MINUTES) - startTime);
+                    } else {
+
                     }
+
                 }
 
             }
 
+
         }
-
-
-
-
-
 
 
 

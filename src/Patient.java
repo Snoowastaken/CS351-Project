@@ -10,6 +10,10 @@ public class Patient extends SimProcess{
 
     public void lifeCycle() throws SuspendExecution{
         medicalModel model = (medicalModel)getModel();
+        //get starting time
+        double startTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES);
+
+
 
 
 

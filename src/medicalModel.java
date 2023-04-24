@@ -55,7 +55,8 @@ public class medicalModel extends Model {
 
     //Creates initial processes
     public void doInitialSchedules() {
-
+        Generator generator = new Generator(this, "Generator", true);
+        generator.activate();
     }
 
     //Initializes the model

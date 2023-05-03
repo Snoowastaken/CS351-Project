@@ -1,10 +1,10 @@
-import desmoj.core.dist.BoolDistBernoulli;
 import desmoj.core.simulator.*;
 import co.paralleluniverse.fibers.SuspendExecution;
 import java.util.concurrent.TimeUnit;
 
 public class Patient extends SimProcess{
-
+    protected int room = 0;
+    protected double arrivalTime;
     public Patient(Model owner, String name, boolean showInTrace) {
         super(owner, name, showInTrace);
     }
@@ -12,57 +12,91 @@ public class Patient extends SimProcess{
     public void lifeCycle() throws SuspendExecution{
         medicalModel model = (medicalModel)getModel();
         //get starting time
-        double startTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES);
+        /*NURSE STAGE*/
+        //get start time
+        boolean roomAvail = false;
+        this.arrivalTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES);
+        //update patients arrived
+        model.patientsArrived.update(1);
         //get size of waiting room
-        int waitingRoomSize = model.waitingRoom.size();
-        BoolDistBernoulli balks = new BoolDistBernoulli(model, "Balks", (double) waitingRoomSize/8, true, true);
-        //check if patient balks
-        boolean balk = balks.sample();
-        if(balk){
+        //if random int < k number of people in waiting room
+       /* if(model.balk.sample() <= model.waitingRoom.size()){
             //patient balks
-            model.patientsBalk.update();
-            model.sendTraceNote(this.getName() + " has balked");
+            model.patientsBalk.update(1);
+            model.sendTraceNote(this.getName() + " balked due to waiting room size: " + model.waitingRoom.size());
+            model.dailyOperatingCost.update(500);
         } else {
-            //patient does not balk
-            //enter waiting room
+            //patient does not balk and enters waiting room
             model.waitingRoom.insert(this);
             model.sendTraceNote(this.getName() + " has entered the waiting room");
-            if (model.nurseIsBusy) {
+            //if no nurses are available
+            if (model.nurseIdleQueue.isEmpty()) {
                 passivate();
             } else {
-                //get current time
-                double currentTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES);
-                //check how long patient has been waiting
-                double waitingTime = currentTime - startTime;
-                if (waitingTime > 30) {
-                    //patient leaves
-                    model.sendTraceNote(this.getName() + " has been sent to the ER");
-                } else {
-                    model.nurseIsBusy = true;
-                    model.waitingRoom.removeFirst();
-                    double treatmentTime = model.treatmentTime.sample();
-                    hold(new TimeSpan(treatmentTime, TimeUnit.MINUTES));
-                    model.nurseIsBusy = false;
-                    //check if patient gets referred to specialist
-                    boolean referral = model.referralRate.sample();
-                    if (!referral) {
-                        //patient is fully treated
+                    //activate first nurse available
+                    Nurse n = model.nurseIdleQueue.removeFirst();
+                    n.activate();
+                    //patient passivates until nurse is done with them
+                    this.passivate();
+                    //get patient waiting time by subtracting current time from start time
+                    double waitingTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES) - this.arrivalTime;
+                    if (!model.referral.sample()) {
+                        //patient is fully treated by nurse
                         model.sendTraceNote(this.getName() + " has been treated");
-                        model.patientsTreated.update();
-                        model.responseTimeFullyTreated.update(model.presentTime().getTimeAsDouble(TimeUnit.MINUTES) - startTime);
-                    } else {
-
+                        model.patientsTreated.update(1);
+                        model.responseTimeFullyTreated.update(waitingTime);
                     }
+                    //needs Specialist
+                    else {
+                        if (waitingTime >= 30) {
+                            //patient diverted to ER
+                            model.patientsDiverted.update(1);
+                            model.sendTraceNote(this.getName() + " has been sent to the ER");
+                            model.dailyOperatingCost.update(500);
+                        }
+*/
+                        //SPECIALIST STAGE
+                       // else {
+                            //attempt to assign patient to clinic room
+                            for(int i  = 0; i < model.numExamRooms; i++) {
+                                //first available empty room found is assigned to patient
+                                if (model.clinicRoom[i] == 0) {
+                                    //occupy room
+                                    model.clinicRoom[i] = i;
+                                    model.sendTraceNote(this + " Occupies Room " + i);
+                                    this.room = i;
+                                    //wait for specialist (fifo)
+                                    model.specialistWaitingQueue.insert(this);
+                                    roomAvail = true;
+                                    break;
+                                }
+                            }
 
-                }
+                            if(roomAvail) {
+                                //if there is an available specialist
+                                if (!model.specialistIdleQueue.isEmpty()) {
+                                    Specialist s = model.specialistIdleQueue.removeFirst();
+                                    s.activate();
+                                }
+                                //patient passivates until called by specialist
+                                this.passivate();
 
-            }
+                                //patient leaves room
+                                model.clinicRoom[this.room] = 0;
+                                model.sendTraceNote(this + " Frees Room " + this.room);
+                                model.patientsTreated.update(1);
+                            }
+                            //no clinic room available
+                            else {
+                                    model.sendTraceNote(this.getName() + " has been sent to the ER");
+                                    model.patientsDiverted.update(1);
+                                    model.dailyOperatingCost.update(500);
+                                }
+                            }
+                       // }
+                    }
+    //            }
+   //         }
+  //      }
+ //   }
 
-
-        }
-
-
-
-
-    }
-}

@@ -16,9 +16,11 @@ public class Specialist extends SimProcess {
                 //insert specialist into queue of idle specialists
                 model.specialistIdleQueue.insert(this);
                 //wait until patient is activates specialist
+                model.specialistUtilization.update(0);
                 this.passivate();
             }
             else{
+                model.specialistUtilization.update(100);
                 //get patient
                 Patient p = model.specialistWaitingQueue.removeFirst();
                 //increase operating cost $200 for seeing specialist

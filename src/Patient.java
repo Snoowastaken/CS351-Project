@@ -57,7 +57,7 @@ public class Patient extends SimProcess{
 */
                         //SPECIALIST STAGE
                        // else {
-                        if(model.specialistWaitingQueue.size() > model.numExamRooms - 1){
+                        if(model.specialistWaitingQueue.size() >= model.numExamRooms - 1){
                             //no clinic room available
                                 model.sendTraceNote(this.getName() + " has been sent to the ER");
                                 model.patientsDiverted.update(1);
@@ -77,6 +77,7 @@ public class Patient extends SimProcess{
                                     break;
                                 }
                             }
+                        model.sendTraceNote("Queue size " + model.specialistWaitingQueue.size());
                             if (!model.specialistIdleQueue.isEmpty()) {
                                 Specialist s = model.specialistIdleQueue.removeFirst();
                                 s.activate();
@@ -84,6 +85,7 @@ public class Patient extends SimProcess{
 
                             //wait to be called by specialist
                             this.passivate();
+
                             //patient leaves the room
                             model.clinicRoom[this.room] = 0;
                             model.patientsTreated.update(1);

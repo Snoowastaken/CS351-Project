@@ -89,7 +89,7 @@ public class medicalModel extends Model {
         //specialistIsBusy = false;
         numExamRooms = 4;
         numNurses = 1;
-        numSpecialists = 1;
+        numSpecialists = 2;
 
         // Initialize structures
         waitingRoom = new ProcessQueue<>(this, "Waiting Room", true, true);
@@ -104,7 +104,7 @@ public class medicalModel extends Model {
         eveningInterArrivalTime = new ContDistExponential(this, "Evening Interarrival Time", 9.0, true, true);
         nurseTreatmentTime = new ContDistExponential(this, "Treatment Time", 8.0, true, true);
         referral = new BoolDistBernoulli(this, "Referral Rate", 0.4, true, true);
-        specialistTreatmentTime = new ContDistExponential(this, "Specialist Treatment Time", 25.0, true, true);
+        specialistTreatmentTime = new ContDistExponential(this, "Specialist Treatment Time", 100.0, true, true);
         balk = new DiscreteDistUniform(this, "Balk Rate", 1, 8, true, true);
 
         // Initialize statistics

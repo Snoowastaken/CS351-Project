@@ -14,7 +14,7 @@ public class Patient extends SimProcess{
         //get starting time
         /*NURSE STAGE*/
         //get start time
-        boolean roomAvail = false;
+        boolean roomAvail = true;
         this.arrivalTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES);
         //update patients arrived
         model.patientsArrived.update(1);
@@ -57,45 +57,39 @@ public class Patient extends SimProcess{
 */
                         //SPECIALIST STAGE
                        // else {
-                            //attempt to assign patient to clinic room
-                            for(int i  = 0; i < model.numExamRooms; i++) {
+                        if(model.specialistWaitingQueue.size() > model.numExamRooms - 1){
+                            //no clinic room available
+                                model.sendTraceNote(this.getName() + " has been sent to the ER");
+                                model.patientsDiverted.update(1);
+                                model.dailyOperatingCost.update(500);
+                        }
+                        else {
+                            //assign patient to clinic room
+                            for (int i = 0; i < model.numExamRooms; i++) {
                                 //first available empty room found is assigned to patient
                                 if (model.clinicRoom[i] == 0) {
                                     //occupy room
-                                    model.clinicRoom[i] = i;
+                                    model.clinicRoom[i] = 1;
                                     model.sendTraceNote(this + " Occupies Room " + i);
                                     this.room = i;
                                     //wait for specialist (fifo)
                                     model.specialistWaitingQueue.insert(this);
-                                    roomAvail = true;
                                     break;
                                 }
                             }
-
-                            if(roomAvail) {
-                                //if there is an available specialist
-                                if (!model.specialistIdleQueue.isEmpty()) {
-                                    Specialist s = model.specialistIdleQueue.removeFirst();
-                                    s.activate();
-                                }
-                                //patient passivates until called by specialist
-                                this.passivate();
-
-                                //patient leaves room
-                                model.clinicRoom[this.room] = 0;
-                                model.sendTraceNote(this + " Frees Room " + this.room);
-                                model.patientsTreated.update(1);
+                            if (!model.specialistIdleQueue.isEmpty()) {
+                                Specialist s = model.specialistIdleQueue.removeFirst();
+                                s.activate();
                             }
-                            //no clinic room available
-                            else {
-                                    model.sendTraceNote(this.getName() + " has been sent to the ER");
-                                    model.patientsDiverted.update(1);
-                                    model.dailyOperatingCost.update(500);
-                                }
-                            }
-                       // }
+
+                            //wait to be called by specialist
+                            this.passivate();
+                            //patient leaves the room
+                            model.clinicRoom[this.room] = 0;
+                            model.patientsTreated.update(1);
+                        }
                     }
-    //            }
+                }
    //         }
   //      }
  //   }

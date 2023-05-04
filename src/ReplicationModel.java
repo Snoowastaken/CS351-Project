@@ -81,7 +81,6 @@ public class ReplicationModel extends Model{
         //TODO THIS SHIT
 
     }
-
     public static void main(String[] args){
         Experiment.setReferenceUnit(TimeUnit.MINUTES);
         ReplicationModel repModel = new ReplicationModel(null, "Replication model for Medical Model", true, true);
@@ -95,16 +94,5 @@ public class ReplicationModel extends Model{
         exp.start();
         exp.report();
         exp.finish();
-
-
-
-
-
     }
-
-
-
-
-
-
 }

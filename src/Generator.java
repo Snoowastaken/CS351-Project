@@ -9,23 +9,24 @@ public class Generator extends SimProcess {
     public void lifeCycle() throws SuspendExecution{
         medicalModel model = (medicalModel)getModel();
         double currentTime = 0;
-        while(currentTime <= 720) { //12 hours
-            //get currentTime
+        double interarrivalTime = 0;
+        //only schedule if patient will arrive before 12 hours
+        while(currentTime + interarrivalTime <= 720){
+            //get interarrival times
             currentTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES);
-            double interarrivalTime = 0;
             if (currentTime >= 0 && currentTime <= 120) {
                 //sample morning interarrival time
                 interarrivalTime = model.morningInterArrivalTime.sample();
             } else if (currentTime > 120 && currentTime <= 480) {
                 //sample afternoon interarrival time
                 interarrivalTime = model.afternoonInterArrivalTime.sample();
-            } else if (currentTime > 480) {
+            } else if (currentTime > 480 && currentTime <= 720) {
                 //sample evening interarrival time
                 interarrivalTime = model.eveningInterArrivalTime.sample();
             }
             hold(new TimeSpan(interarrivalTime, TimeUnit.MINUTES));
             Patient patient = new Patient(model, "Patient", true);
             patient.activate();
-            }
         }
     }
+}

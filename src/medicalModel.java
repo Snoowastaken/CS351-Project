@@ -41,11 +41,15 @@ public class medicalModel extends Model {
     protected Count patientsBalk;
     protected Count patientsDiverted;
     protected Count patientsTreated;
+    protected Count numPatientsInSystem;
     protected Tally responseTimeFullyTreated;
     protected Accumulate nurseUtilization;
     protected Accumulate specialistUtilization;
     //protected Count avgNumPatientsWaiting;
     protected Count dailyOperatingCost;
+
+    //Model Condition
+    protected static ModelCondition numInSystemCondition;
 
     // Constructor
     public medicalModel(Model owner, String name, boolean showInReport, boolean showInTrace) {
@@ -89,7 +93,7 @@ public class medicalModel extends Model {
         //specialistIsBusy = false;
         numExamRooms = 4;
         numNurses = 1;
-        numSpecialists = 2;
+        numSpecialists = 1;
 
         // Initialize structures
         waitingRoom = new ProcessQueue<>(this, "Waiting Room", true, true);
@@ -104,7 +108,7 @@ public class medicalModel extends Model {
         eveningInterArrivalTime = new ContDistExponential(this, "Evening Interarrival Time", 9.0, true, true);
         nurseTreatmentTime = new ContDistExponential(this, "Treatment Time", 8.0, true, true);
         referral = new BoolDistBernoulli(this, "Referral Rate", 0.4, true, true);
-        specialistTreatmentTime = new ContDistExponential(this, "Specialist Treatment Time", 100.0, true, true);
+        specialistTreatmentTime = new ContDistExponential(this, "Specialist Treatment Time", 25.0, true, true);
         balk = new DiscreteDistUniform(this, "Balk Rate", 1, 8, true, true);
 
         // Initialize statistics
@@ -112,11 +116,20 @@ public class medicalModel extends Model {
         patientsBalk = new Count(this, "Patients Balked", true, true);
         patientsDiverted = new Count(this, "Patients Diverted", true, true);
         patientsTreated = new Count(this, "Patients Fully Treated", true, true);
+        numPatientsInSystem = new Count(this, "Number of Patients in System", true, true);
         responseTimeFullyTreated = new Tally(this, "Response Time Fully Treated", true, true);
         nurseUtilization = new Accumulate(this, "Nurse Utilization", true, true);
         specialistUtilization = new Accumulate(this, "Specialist Utilization", true, true);
-        //avgNumPatientsWaiting = new Count(this, "Average Number of Patients Waiting", true, true);
         dailyOperatingCost = new Count(this, "Daily Operating Cost", true, true);
+
+        //Model Condition
+        numInSystemCondition = new ModelCondition(this, "Number in System Condition", true, this.numPatientsInSystem, this.getModel().presentTime()) {;
+            @Override
+            public boolean check() {
+               // return numPatientsInSystem.getValue() == 0 && ;
+                return this.presentTime().getTimeAsDouble() >= 720 && numPatientsInSystem.getValue() == 0;
+            }
+        };
     }
 
     //runs the model
@@ -126,7 +139,8 @@ public class medicalModel extends Model {
         Experiment exp = new Experiment("Medical Model Experiment");
         model.connectToExperiment(exp);
         exp.setShowProgressBar(false);
-        exp.stop(new TimeInstant(960, TimeUnit.MINUTES)); //running for 16 hours for now
+
+        exp.stop(numInSystemCondition);
         //stop experiment
         exp.tracePeriod(new TimeInstant(0, TimeUnit.MINUTES),
                 new TimeInstant(960, TimeUnit.MINUTES));

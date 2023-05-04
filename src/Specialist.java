@@ -10,7 +10,7 @@ public class Specialist extends SimProcess {
     @Override
     public void lifeCycle() throws SuspendExecution {
         medicalModel model = (medicalModel) getModel();
-        while(true) { //FIXME add ModelCondition
+        while(true) {
             //if no one is waiting for specialist
             if(model.specialistWaitingQueue.isEmpty()){
                 //insert specialist into queue of idle specialists

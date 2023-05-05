@@ -10,7 +10,7 @@ public class Nurse extends SimProcess {
     @Override
     public void lifeCycle() throws SuspendExecution {
             medicalModel model = (medicalModel) getModel();
-            while(true){ //FIXME: possibly use ModelCondition
+            while(true){
                 //no patients in waiting room
                 if(model.waitingRoom.isEmpty()){
                     //insert nurse in queue of idle nurses

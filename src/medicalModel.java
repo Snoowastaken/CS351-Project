@@ -133,7 +133,7 @@ public class medicalModel extends Model {
     }
 
     //runs the model
-    public static void main(String[] args){
+   /* public static void main(String[] args){
         Experiment.setReferenceUnit(TimeUnit.MINUTES);
         medicalModel model = new medicalModel(null, "Medical Model", true, true);
         Experiment exp = new Experiment("Medical Model Experiment");
@@ -149,5 +149,5 @@ public class medicalModel extends Model {
         exp.start();
         exp.report();
         exp.finish();
-    }
+    } */
 }

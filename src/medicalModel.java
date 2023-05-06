@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit;
 
 public class medicalModel extends Model {
     /* State Variables */
-    protected int numExamRooms;
-    protected int numNurses;
-    protected int numSpecialists;
+    protected int numExamRooms = 4;
+    protected int numNurses = 1;
+    protected int numSpecialists = 1;
 
     /* Structures */
     //patients waiting for nurse
@@ -20,9 +20,9 @@ public class medicalModel extends Model {
     protected ProcessQueue<Specialist> specialistIdleQueue;
 
     //Keeps track of available clinic rooms if patient needs Specialist
-    // clinicRoom[i] == 0  (clinic room is available for patient)
-    // clinicRoom[i] != 0: (clinic room is occupied)
-    protected int[] clinicRoom;
+    // clinicRoom[i] == false  (clinic room is available for patient)
+    // clinicRoom[i] != true: (clinic room is occupied)
+    protected boolean[] occupiedClinicRooms;
 
     /* Distribution Variables */
     protected ContDistExponential morningInterArrivalTime;
@@ -33,8 +33,6 @@ public class medicalModel extends Model {
 
     protected DiscreteDistUniform balk;
     protected ContDistExponential specialistTreatmentTime;
-
-
 
     /* Statistics */
     protected Count patientsArrived;
@@ -78,7 +76,7 @@ public class medicalModel extends Model {
         }
         //initializing clinic rooms to available
         for(int i = 0; i < numExamRooms; i++){
-            clinicRoom[i] = 0;
+            occupiedClinicRooms[i] = false;
             dailyOperatingCost.update(300);
         }
 
@@ -89,18 +87,13 @@ public class medicalModel extends Model {
     //Initializes the model
     public void init() {
         // Initialize state variables
-       // nurseIsBusy = false;
-        //specialistIsBusy = false;
-        numExamRooms = 4;
-        numNurses = 1;
-        numSpecialists = 1;
 
         // Initialize structures
         waitingRoom = new ProcessQueue<>(this, "Waiting Room", true, true);
         specialistWaitingQueue = new ProcessQueue<>(this, "Specialist Queue", true, true);
         nurseIdleQueue = new ProcessQueue<>(this, "Nurse(s) Idle", true, true);
         specialistIdleQueue = new ProcessQueue<>(this, "Specialist(s) Idle", true, true);
-        clinicRoom = new int[numExamRooms];
+        occupiedClinicRooms = new boolean[numExamRooms];
 
         // Initialize distributions
         morningInterArrivalTime = new ContDistExponential(this, "Morning Interarrival Time", 15.0, true, true);
@@ -132,20 +125,16 @@ public class medicalModel extends Model {
         };
     }
 
-    //runs the model
-   /* public static void main(String[] args){
-        Experiment.setReferenceUnit(TimeUnit.MINUTES);
+        /*public static void main(String[] args){
+        //add command line options
+       Experiment.setReferenceUnit(TimeUnit.MINUTES);
         medicalModel model = new medicalModel(null, "Medical Model", true, true);
-        Experiment exp = new Experiment("Medical Model Experiment");
+        Experiment exp = new Experiment("Single run of Medical Model");
         model.connectToExperiment(exp);
         exp.setShowProgressBar(false);
-
         exp.stop(numInSystemCondition);
-        //stop experiment
-        exp.tracePeriod(new TimeInstant(0, TimeUnit.MINUTES),
-                new TimeInstant(960, TimeUnit.MINUTES));
-        exp.debugPeriod(new TimeInstant(0, TimeUnit.MINUTES),
-                new TimeInstant(960, TimeUnit.MINUTES));
+        exp.traceOff(new TimeInstant(960));
+        exp.debugOff(new TimeInstant(960));
         exp.start();
         exp.report();
         exp.finish();

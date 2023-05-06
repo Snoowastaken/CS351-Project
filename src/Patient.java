@@ -24,6 +24,7 @@ public class Patient extends SimProcess {
             //patient balks
             model.patientsBalk.update(1);
             model.sendTraceNote(this.getName() + " balked due to waiting room size: " + model.waitingRoom.size());
+            //patient goes to ER
             model.dailyOperatingCost.update(500);
         } else {
             //patient does not balk and enters waiting room
@@ -55,7 +56,8 @@ public class Patient extends SimProcess {
                     }
                     //SPECIALIST STAGE
                     else {
-                        if (model.specialistWaitingQueue.size() >= model.numExamRooms - model.numSpecialists) {
+                        //num specialists
+                        if(roomsAreFull(model.occupiedClinicRooms)){
                             //no clinic room available
                             model.sendTraceNote(this.getName() + " sent to ER due to no clinic rooms available");
                             model.patientsDiverted.update(1);
@@ -64,14 +66,14 @@ public class Patient extends SimProcess {
                             //assign patient to clinic room
                             for (int i = 0; i < model.numExamRooms; i++) {
                                 //first available empty room found is assigned to patient
-                                if (model.clinicRoom[i] == 0) {
+                                if (!model.occupiedClinicRooms[i]) {
                                     //occupy room
-                                    model.clinicRoom[i] = 1;
+                                    model.occupiedClinicRooms[i] = true;
                                     model.sendTraceNote(this + " Occupies Room " + i);
                                     this.room = i;
                                     //wait for specialist (fifo)
                                     model.specialistWaitingQueue.insert(this);
-                                    model.sendTraceNote(" Specialist queue size: " + model.specialistWaitingQueue.size());
+                                    model.sendTraceNote(" Specialist waiting queue size: " + model.specialistWaitingQueue.size());
                                     break;
                                 }
                             }
@@ -85,12 +87,23 @@ public class Patient extends SimProcess {
                             this.passivate();
 
                             //patient leaves the room, available for next patient
-                            model.clinicRoom[this.room] = 0;
+                            model.occupiedClinicRooms[this.room] = false;
+                            waitingTime = model.presentTime().getTimeAsDouble(TimeUnit.MINUTES) - this.arrivalTime;
+                            model.responseTimeFullyTreated.update(waitingTime);
                             model.patientsTreated.update(1);
                         }
                     }
                 }
            }
             model.numPatientsInSystem.update(-1);
+        }
+
+        private boolean roomsAreFull(boolean[] rooms){
+            for(int i = 0; i < rooms.length; i++){
+                if(!rooms[i]){
+                    return false;
+                }
+            }
+            return true;
         }
     }

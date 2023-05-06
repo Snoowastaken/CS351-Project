@@ -9,13 +9,11 @@ public class ReplicationModel extends Model{
     protected ConfidenceCalculator repDailyOperatingCost;
     protected ConfidenceCalculator repPatientsArrived;
     protected ConfidenceCalculator repPatientsBalked;
-
     protected ConfidenceCalculator repPatientsDiverted;
     protected ConfidenceCalculator repResponseTime;
     protected ConfidenceCalculator repNurseUtilization;
     protected ConfidenceCalculator repSpecialistUtilization;
     protected ConfidenceCalculator repWaitingRoomSize;
-
 
     // Constructor
     public ReplicationModel(Model owner, String name, boolean showInReport, boolean showInTrace) {
@@ -30,8 +28,8 @@ public class ReplicationModel extends Model{
     public void doInitialSchedules() {
         if(INCLUDE_OUTPUT_PER_REPLICATION) {
             System.out.format(
-                    "                  Patients  Patients  Patients  Response  Nurse(s)  Specialist(s) Waiting Room Daily Operating \n"
-                            + "Repl.#  Arrived   Balked    Diverted  Time      Util.      Util.        Size         Costs\n"
+                    "                  Patients  Patients  Patients  Response  Avg.Nurse(s)  Avg.Specialist(s) Waiting Room Daily Operating \n"
+                            + "Repl.#  Arrived   Balked    Diverted  Time      Util.         Util.             Size         Costs\n"
                             + "---------------------------------------------------------------------------------------\n"
             );
         }
@@ -52,7 +50,6 @@ public class ReplicationModel extends Model{
     }
 
     public boolean runSimulation(int replicationNumber) {
-
         medicalModel model = new medicalModel(null, "Medical Clinic", true, true);
         String outputFilename = "output/medicalModel" + "_Repl_" + replicationNumber + ".txt";
         Experiment exp = new Experiment(outputFilename, INCLUDE_REPORT_PER_REPLICATION);
@@ -95,11 +92,11 @@ public class ReplicationModel extends Model{
 
         // Get the output values from the model
         double patientsArrived = model.patientsArrived.getObservations();
-        double patientsBalk = model.patientsBalk.getValue();
+        double patientsBalk = model.patientsBalk.getObservations();
         double patientsDiverted = model.patientsDiverted.getValue();
-        double responseTime = model.responseTimeFullyTreated.getObservations();
-        double nurseUtilization = model.nurseUtilization.getObservations();
-        double specialistUtilization = model.specialistUtilization.getObservations();
+        double responseTime = model.responseTimeFullyTreated.getMean();
+        double nurseUtilization = model.nurseUtilization.getMean();
+        double specialistUtilization = model.specialistUtilization.getMean();
         double waitingRoomSize = model.waitingRoom.averageLength();
         double dailyOperatingCost = model.dailyOperatingCost.getValue();
 
@@ -123,7 +120,7 @@ public class ReplicationModel extends Model{
 
         // Print replication results.
         if (INCLUDE_OUTPUT_PER_REPLICATION) {
-            System.out.format("%6d: %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f\n",
+            System.out.format("%6d: %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f %7.3f\n",
                     replicationNumber, patientsArrived, patientsBalk, patientsDiverted,
                     responseTime, nurseUtilization, specialistUtilization,
                     waitingRoomSize, dailyOperatingCost);
@@ -135,10 +132,10 @@ public class ReplicationModel extends Model{
             repPatientsArrived = new ConfidenceCalculator(this, "Across Replic: Patients Arrived",  true, false);
             repPatientsBalked = new ConfidenceCalculator(this, "Across Replic: Patients Balked",  true, false);
             repPatientsDiverted = new ConfidenceCalculator(this, "Across Replic: Patients Diverted",  true, false);
-            repResponseTime = new ConfidenceCalculator(this, "Across Replic: Patients Response Time",  true, false);;
+            repResponseTime = new ConfidenceCalculator(this, "Across Replic: Avg. Patients Response Time",  true, false);;
             repNurseUtilization = new ConfidenceCalculator(this, "Across Replic: Nurse Utilization",  true, false);;
             repSpecialistUtilization = new ConfidenceCalculator(this, "Across Replic: Specialist Utilization",  true, false);;
-            repWaitingRoomSize = new ConfidenceCalculator(this, "Across Replic: Waiting Room Size", true, false);
+            repWaitingRoomSize = new ConfidenceCalculator(this, "Across Replic: Avg. Waiting Room Size", true, false);
             repDailyOperatingCost = new ConfidenceCalculator(this, "Across Replic: Daily Operating Costs", true, false);
     }
     public static void main(String[] args){
